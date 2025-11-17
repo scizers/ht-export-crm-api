@@ -6,10 +6,12 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
 
 const connectDB = require('./src/config/db');
 const logger = require('./src/config/logger');
 const errorMiddleware = require('./src/middlewares/errorMiddleware');
+const swaggerDocument = require('./src/config/swagger.json');
 const authRoutes = require('./src/routes/authRoutes');
 const leadRoutes = require('./src/routes/leadRoutes');
 const followupRoutes = require('./src/routes/followupRoutes');
@@ -42,6 +44,7 @@ app.use('/api/followups', followupRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use((req, res, next) => {
   const error = new Error('Not Found');

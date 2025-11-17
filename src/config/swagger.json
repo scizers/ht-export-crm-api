@@ -1,0 +1,421 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "HT Export CRM API",
+    "version": "1.0.0",
+    "description": "API documentation for CRM backend"
+  },
+  "servers": [
+    { "url": "http://localhost:5001" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AuthRegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": { "type": "string", "example": "Jane Doe" },
+          "email": { "type": "string", "example": "jane@example.com" },
+          "password": { "type": "string", "example": "P@ssw0rd!" },
+          "role": { "type": "string", "enum": ["admin", "staff"], "example": "staff" }
+        }
+      },
+      "AuthLoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "jane@example.com" },
+          "password": { "type": "string", "example": "P@ssw0rd!" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "email": { "type": "string" },
+              "role": { "type": "string", "enum": ["admin", "staff"] }
+            }
+          }
+        }
+      },
+      "Lead": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "650f3d7a8c0e3a0012d12345" },
+          "customerName": { "type": "string", "example": "ACME Imports" },
+          "companyName": { "type": "string", "example": "ACME Ltd" },
+          "email": { "type": "string", "example": "buyer@acme.com" },
+          "phone": { "type": "string", "example": "+1-555-123-4567" },
+          "country": { "type": "string", "example": "USA" },
+          "product": { "type": "string", "example": "Steel coils" },
+          "leadStatus": { "type": "string", "enum": ["new", "in-progress", "closed", "lost"], "example": "new" },
+          "nextActionDate": { "type": "string", "format": "date-time" },
+          "assignedTo": { "type": "string" },
+          "createdBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "FollowUp": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "lead": { "type": "string" },
+          "title": { "type": "string", "example": "Send price list" },
+          "description": { "type": "string", "example": "Email updated price list by EOD" },
+          "dueDate": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["pending", "done"], "example": "pending" },
+          "createdBy": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "lead": { "type": "string" },
+          "sender": { "type": "string" },
+          "type": { "type": "string", "enum": ["email", "whatsapp", "call", "note"], "example": "email" },
+          "content": { "type": "string", "example": "Sent proposal and awaiting reply." },
+          "attachments": {
+            "type": "array",
+            "items": { "type": "string", "example": "/uploads/file.pdf" }
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Comment": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "lead": { "type": "string" },
+          "user": { "type": "string" },
+          "text": { "type": "string", "example": "Client prefers WhatsApp over email." },
+          "screenshot": { "type": "string", "example": "/uploads/screenshots/snap.png" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "user": { "type": "string" },
+          "message": { "type": "string", "example": "Follow-up due today" },
+          "type": { "type": "string", "enum": ["lead", "followup"] },
+          "isRead": { "type": "boolean", "example": false },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "security": [{ "BearerAuth": [] }],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthRegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "409": { "description": "User already exists" }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuthLoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials" }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/AuthResponse/properties/user" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/leads": {
+      "get": {
+        "summary": "List leads",
+        "responses": {
+          "200": {
+            "description": "Leads list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Lead" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create lead",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Lead" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lead created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } }
+          }
+        }
+      }
+    },
+    "/api/leads/{id}": {
+      "get": {
+        "summary": "Get lead by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Lead", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } } },
+          "404": { "description": "Not found" }
+        }
+      },
+      "put": {
+        "summary": "Update lead",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } }
+        },
+        "responses": {
+          "200": { "description": "Updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } } },
+          "404": { "description": "Not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete lead",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "204": { "description": "Deleted" }, "404": { "description": "Not found" } }
+      }
+    },
+    "/api/leads/calendar": {
+      "get": {
+        "summary": "Calendar range for leads and follow-ups",
+        "parameters": [
+          { "name": "start", "in": "query", "required": true, "schema": { "type": "string", "example": "2024-01-01" } },
+          { "name": "end", "in": "query", "required": true, "schema": { "type": "string", "example": "2024-01-31" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "leads": { "type": "array", "items": { "$ref": "#/components/schemas/Lead" } },
+                    "followups": { "type": "array", "items": { "$ref": "#/components/schemas/FollowUp" } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid date" }
+        }
+      }
+    },
+    "/api/followups": {
+      "post": {
+        "summary": "Create follow-up",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["lead"],
+                "properties": {
+                  "lead": { "type": "string", "example": "650f3d7a8c0e3a0012d12345" },
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "dueDate": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Follow-up created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FollowUp" } } } }
+        }
+      }
+    },
+    "/api/followups/lead/{leadId}": {
+      "get": {
+        "summary": "List follow-ups for a lead",
+        "parameters": [{ "name": "leadId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "Follow-ups",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/FollowUp" } } } }
+          }
+        }
+      }
+    },
+    "/api/followups/{id}/done": {
+      "patch": {
+        "summary": "Mark follow-up done",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FollowUp" } } } },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/followups/{id}": {
+      "put": {
+        "summary": "Update follow-up",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FollowUp" } } }
+        },
+        "responses": {
+          "200": { "description": "Updated", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FollowUp" } } } },
+          "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/api/messages": {
+      "post": {
+        "summary": "Add message with optional attachments",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["lead"],
+                "properties": {
+                  "lead": { "type": "string", "example": "650f3d7a8c0e3a0012d12345" },
+                  "type": { "type": "string", "enum": ["email", "whatsapp", "call", "note"], "example": "email" },
+                  "content": { "type": "string", "example": "Shared proposal via email." },
+                  "attachments": { "type": "array", "items": { "type": "string", "format": "binary" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Message created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Message" } } } }
+        }
+      }
+    },
+    "/api/messages/lead/{leadId}": {
+      "get": {
+        "summary": "List messages for a lead",
+        "parameters": [{ "name": "leadId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Messages", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Message" } } } } }
+        }
+      }
+    },
+    "/api/comments": {
+      "post": {
+        "summary": "Add comment with optional screenshot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["lead"],
+                "properties": {
+                  "lead": { "type": "string", "example": "650f3d7a8c0e3a0012d12345" },
+                  "text": { "type": "string", "example": "Client asked for updated price." },
+                  "screenshot": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Comment created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Comment" } } } }
+        }
+      }
+    },
+    "/api/comments/lead/{leadId}": {
+      "get": {
+        "summary": "List comments for a lead",
+        "parameters": [{ "name": "leadId", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Comments", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Comment" } } } } }
+        }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "summary": "List notifications for current user (placeholder)",
+        "responses": {
+          "501": { "description": "Not implemented" }
+        }
+      }
+    }
+  }
+}
