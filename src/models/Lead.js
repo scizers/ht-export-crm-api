@@ -39,11 +39,11 @@ const leadSchema = new Schema(
       type: Date,
     },
     assignedTo: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
     },
     createdBy: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
     },
   },

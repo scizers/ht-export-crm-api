@@ -1,28 +1,30 @@
 import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
-
+const {Schema} = mongoose;
+const fileSch = new Schema({
+    name: String,
+    uid: String,
+    path: String,
+    url: String,
+})
 const commentSchema = new Schema(
-  {
-    lead: {
-      type: Schema.Types.ObjectId,
-      ref: 'Lead',
-      required: true,
+    {
+        lead: {
+            type: String,
+            ref: 'Lead',
+            required: true,
+        },
+        user: {
+            type: String,
+            ref: 'User',
+        },
+        text: {
+            type: String,
+            trim: true,
+        },
+        screenshot: [fileSch],
     },
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-    },
-    text: {
-      type: String,
-      trim: true,
-    },
-    screenshot: {
-      type: String,
-      trim: true,
-    },
-  },
-  { timestamps: { createdAt: true, updatedAt: false } }
+    {timestamps: {createdAt: true, updatedAt: false}}
 );
 
 const Comment = mongoose.model('Comment', commentSchema);

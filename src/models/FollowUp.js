@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const followUpSchema = new Schema(
   {
     lead: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'Lead',
       required: true,
     },
@@ -26,7 +26,7 @@ const followUpSchema = new Schema(
       default: 'pending',
     },
     createdBy: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
     },
   },
