@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
@@ -38,4 +38,4 @@ followUpSchema.index({ dueDate: 1 });
 
 const FollowUp = mongoose.model('FollowUp', followUpSchema);
 
-module.exports = FollowUp;
+export default FollowUp;

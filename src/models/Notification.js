@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
@@ -28,4 +28,4 @@ notificationSchema.index({ user: 1, isRead: 1 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 
-module.exports = Notification;
+export default Notification;

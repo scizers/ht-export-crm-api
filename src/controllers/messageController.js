@@ -1,40 +1,59 @@
-const Message = require('../models/Message');
-const logger = require('../config/logger');
+import Message from '../models/Message.js';
+import logger from '../config/logger.js';
+import { successObj, errorObj } from '../utils/response.js';
 
-exports.addMessage = async (req, res, next) => {
+export const addMessage = async ({ body, files, user }) => {
   try {
-    const { lead, type, content } = req.body;
+    const { lead, type, content } = body;
 
     if (!lead) {
-      return res.status(400).json({ message: 'lead is required' });
+      return {
+        ...errorObj,
+        status: 400,
+        message: 'lead is required',
+      };
     }
 
-    const attachments =
-      req.files?.map((file) => `/uploads/${file.filename}`) || [];
+    const attachments = files?.map((file) => `/uploads/${file.filename}`) || [];
 
     const message = await Message.create({
       lead,
-      sender: req.user?._id,
+      sender: user?._id,
       type,
       content,
       attachments,
     });
 
-    return res.status(201).json(message);
+    return {
+      ...successObj,
+      status: 201,
+      message,
+    };
   } catch (err) {
     logger.error('addMessage error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to add message',
+    };
   }
 };
 
-exports.getMessagesByLead = async (req, res, next) => {
+export const getMessagesByLead = async ({ params }) => {
   try {
-    const messages = await Message.find({ lead: req.params.leadId }).sort({
+    const messages = await Message.find({ lead: params.leadId }).sort({
       createdAt: 1,
     });
-    return res.json(messages);
+    return {
+      ...successObj,
+      messages,
+    };
   } catch (err) {
     logger.error('getMessagesByLead error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to fetch messages',
+    };
   }
 };

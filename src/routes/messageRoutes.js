@@ -1,15 +1,34 @@
-const express = require('express');
-const multer = require('multer');
-const { addMessage, getMessagesByLead } = require('../controllers/messageController');
-const { authGuard } = require('../middlewares/authMiddleware');
+import { Router } from 'express';
+import multer from 'multer';
+import { addMessage, getMessagesByLead } from '../controllers/messageController.js';
+import { authGuard } from '../middlewares/authMiddleware.js';
 
 const upload = multer({ dest: 'public/uploads/' });
 
-const router = express.Router();
+const router = Router();
 
 router.use(authGuard);
 
-router.post('/', upload.array('attachments'), addMessage);
-router.get('/lead/:leadId', getMessagesByLead);
+router.post('/', upload.array('attachments'), async (req, res, next) => {
+  try {
+    const body = req.body;
+    const files = req.files;
+    const user = req.user;
+    const response = await addMessage({ body, files, user });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
 
-module.exports = router;
+router.get('/lead/:leadId', async (req, res, next) => {
+  try {
+    const params = req.params;
+    const response = await getMessagesByLead({ params });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+export default router;

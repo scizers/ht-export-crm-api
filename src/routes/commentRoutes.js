@@ -1,15 +1,34 @@
-const express = require('express');
-const multer = require('multer');
-const { addComment, getCommentsByLead } = require('../controllers/commentController');
-const { authGuard } = require('../middlewares/authMiddleware');
+import { Router } from 'express';
+import multer from 'multer';
+import { addComment, getCommentsByLead } from '../controllers/commentController.js';
+import { authGuard } from '../middlewares/authMiddleware.js';
 
 const upload = multer({ dest: 'public/uploads/screenshots/' });
 
-const router = express.Router();
+const router = Router();
 
 router.use(authGuard);
 
-router.post('/', upload.single('screenshot'), addComment);
-router.get('/lead/:leadId', getCommentsByLead);
+router.post('/', upload.single('screenshot'), async (req, res, next) => {
+  try {
+    const body = req.body;
+    const file = req.file;
+    const user = req.user;
+    const response = await addComment({ body, file, user });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
 
-module.exports = router;
+router.get('/lead/:leadId', async (req, res, next) => {
+  try {
+    const params = req.params;
+    const response = await getCommentsByLead({ params });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+export default router;

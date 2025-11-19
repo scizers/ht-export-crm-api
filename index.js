@@ -1,23 +1,25 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './src/config/swagger.json' assert { type: 'json' };
 
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
-const path = require('path');
-const swaggerUi = require('swagger-ui-express');
+import connectDB from './src/config/db.js';
+import logger from './src/config/logger.js';
+import errorMiddleware from './src/middlewares/errorMiddleware.js';
+import authRoutes from './src/routes/authRoutes.js';
+import leadRoutes from './src/routes/leadRoutes.js';
+import followupRoutes from './src/routes/followupRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
+import commentRoutes from './src/routes/commentRoutes.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 
-const connectDB = require('./src/config/db');
-const logger = require('./src/config/logger');
-const errorMiddleware = require('./src/middlewares/errorMiddleware');
-const swaggerDocument = require('./src/config/swagger.json');
-const authRoutes = require('./src/routes/authRoutes');
-const leadRoutes = require('./src/routes/leadRoutes');
-const followupRoutes = require('./src/routes/followupRoutes');
-const messageRoutes = require('./src/routes/messageRoutes');
-const commentRoutes = require('./src/routes/commentRoutes');
-const notificationRoutes = require('./src/routes/notificationRoutes');
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,6 +37,9 @@ app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined', { stream: logger.stream }));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
@@ -54,7 +59,7 @@ app.use((req, res, next) => {
 
 app.use(errorMiddleware);
 
-async function startServer() {
+const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
@@ -64,6 +69,6 @@ async function startServer() {
     logger.error('Failed to start server: %s', err.message);
     process.exit(1);
   }
-}
+};
 
 startServer();

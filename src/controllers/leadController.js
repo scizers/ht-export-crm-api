@@ -1,91 +1,149 @@
-const Lead = require('../models/Lead');
-const FollowUp = require('../models/FollowUp');
-const logger = require('../config/logger');
+import Lead from '../models/Lead.js';
+import FollowUp from '../models/FollowUp.js';
+import logger from '../config/logger.js';
+import { successObj, errorObj } from '../utils/response.js';
 
-exports.createLead = async (req, res, next) => {
+export const createLead = async ({ body, user }) => {
   try {
     const payload = {
-      ...req.body,
-      createdBy: req.user?._id,
+      ...body,
+      createdBy: user?._id,
     };
 
     const lead = await Lead.create(payload);
-    return res.status(201).json(lead);
+    return {
+      ...successObj,
+      status: 201,
+      lead,
+    };
   } catch (err) {
     logger.error('createLead error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to create lead',
+    };
   }
 };
 
-exports.getLeads = async (req, res, next) => {
+export const getLeads = async () => {
   try {
     const leads = await Lead.find().sort({ updatedAt: -1 });
-    return res.json(leads);
+    return {
+      ...successObj,
+      leads,
+    };
   } catch (err) {
     logger.error('getLeads error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to fetch leads',
+    };
   }
 };
 
-exports.getLeadById = async (req, res, next) => {
+export const getLeadById = async ({ params }) => {
   try {
-    const lead = await Lead.findById(req.params.id);
+    const lead = await Lead.findById(params.id);
     if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
+      return {
+        ...errorObj,
+        status: 404,
+        message: 'Lead not found',
+      };
     }
 
-    return res.json(lead);
+    return {
+      ...successObj,
+      lead,
+    };
   } catch (err) {
     logger.error('getLeadById error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to fetch lead',
+    };
   }
 };
 
-exports.updateLead = async (req, res, next) => {
+export const updateLead = async ({ params, body }) => {
   try {
-    const lead = await Lead.findByIdAndUpdate(req.params.id, req.body, {
+    const lead = await Lead.findByIdAndUpdate(params.id, body, {
       new: true,
       runValidators: true,
     });
 
     if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
+      return {
+        ...errorObj,
+        status: 404,
+        message: 'Lead not found',
+      };
     }
 
-    return res.json(lead);
+    return {
+      ...successObj,
+      lead,
+    };
   } catch (err) {
     logger.error('updateLead error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to update lead',
+    };
   }
 };
 
-exports.deleteLead = async (req, res, next) => {
+export const deleteLead = async ({ params }) => {
   try {
-    const lead = await Lead.findByIdAndDelete(req.params.id);
+    const lead = await Lead.findByIdAndDelete(params.id);
     if (!lead) {
-      return res.status(404).json({ message: 'Lead not found' });
+      return {
+        ...errorObj,
+        status: 404,
+        message: 'Lead not found',
+      };
     }
 
-    return res.status(204).send();
+    return {
+      ...successObj,
+      status: 200,
+      message: 'Lead deleted',
+    };
   } catch (err) {
     logger.error('deleteLead error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to delete lead',
+    };
   }
 };
 
-exports.getCalendar = async (req, res, next) => {
+export const getCalendar = async ({ query }) => {
   try {
-    const { start, end } = req.query;
+    const { start, end } = query;
 
     if (!start || !end) {
-      return res.status(400).json({ message: 'start and end query params are required (YYYY-MM-DD)' });
+      return {
+        ...errorObj,
+        status: 400,
+        message: 'start and end query params are required (YYYY-MM-DD)',
+      };
     }
 
     const startDate = new Date(start);
     const endDate = new Date(end);
 
     if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-      return res.status(400).json({ message: 'Invalid date format for start or end' });
+      return {
+        ...errorObj,
+        status: 400,
+        message: 'Invalid date format for start or end',
+      };
     }
 
     const leads = await Lead.find({
@@ -96,9 +154,17 @@ exports.getCalendar = async (req, res, next) => {
       dueDate: { $gte: startDate, $lte: endDate },
     });
 
-    return res.json({ leads, followups });
+    return {
+      ...successObj,
+      leads,
+      followups,
+    };
   } catch (err) {
     logger.error('getCalendar error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to fetch calendar data',
+    };
   }
 };

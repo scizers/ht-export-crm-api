@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const { Schema } = mongoose;
 
@@ -50,4 +50,4 @@ userSchema.methods.comparePassword = function comparePassword(candidatePassword)
 
 const User = mongoose.model('User', userSchema);
 
-module.exports = User;
+export default User;

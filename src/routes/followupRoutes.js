@@ -1,19 +1,56 @@
-const express = require('express');
-const {
+import { Router } from 'express';
+import {
   createFollowUp,
   getFollowUpsByLead,
   markDone,
   updateFollowUp,
-} = require('../controllers/followupController');
-const { authGuard } = require('../middlewares/authMiddleware');
+} from '../controllers/followupController.js';
+import { authGuard } from '../middlewares/authMiddleware.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(authGuard);
 
-router.post('/', createFollowUp);
-router.get('/lead/:leadId', getFollowUpsByLead);
-router.patch('/:id/done', markDone);
-router.put('/:id', updateFollowUp);
+router.post('/', async (req, res, next) => {
+  try {
+    const body = req.body;
+    const user = req.user;
+    const response = await createFollowUp({ body, user });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
 
-module.exports = router;
+router.get('/lead/:leadId', async (req, res, next) => {
+  try {
+    const params = req.params;
+    const response = await getFollowUpsByLead({ params });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.patch('/:id/done', async (req, res, next) => {
+  try {
+    const params = req.params;
+    const response = await markDone({ params });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.put('/:id', async (req, res, next) => {
+  try {
+    const params = req.params;
+    const body = req.body;
+    const response = await updateFollowUp({ params, body });
+    return res.json(response);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+export default router;

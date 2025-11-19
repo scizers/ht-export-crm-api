@@ -1,11 +1,10 @@
-const express = require('express');
-const { authGuard } = require('../middlewares/authMiddleware');
+import { Router } from 'express';
+import { authGuard } from '../middlewares/authMiddleware.js';
 
-const router = express.Router();
+const router = Router();
 
 router.use(authGuard);
 
-// Placeholder routes; to be implemented with controller logic
 router.get('/', (req, res) => res.status(501).json({ message: 'Not implemented' }));
 
-module.exports = router;
+export default router;

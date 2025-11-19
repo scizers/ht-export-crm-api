@@ -1,6 +1,6 @@
-const { createLogger, format, transports } = require('winston');
-const fs = require('fs');
-const path = require('path');
+import { createLogger, format, transports } from 'winston';
+import fs from 'fs';
+import path from 'path';
 
 const { combine, timestamp, printf, errors, splat, colorize, json } = format;
 
@@ -24,12 +24,12 @@ const logger = createLogger({
     new transports.File({
       filename: path.join(logDir, 'error.log'),
       level: 'error',
-      maxsize: 5 * 1024 * 1024, // 5MB
+      maxsize: 5 * 1024 * 1024,
       maxFiles: 5,
     }),
     new transports.File({
       filename: path.join(logDir, 'combined.log'),
-      maxsize: 5 * 1024 * 1024, // 5MB
+      maxsize: 5 * 1024 * 1024,
       maxFiles: 5,
     }),
   ],
@@ -39,4 +39,4 @@ logger.stream = {
   write: (message) => logger.info(message.trim()),
 };
 
-module.exports = logger;
+export default logger;

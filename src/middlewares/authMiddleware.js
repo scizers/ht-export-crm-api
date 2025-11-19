@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const logger = require('../config/logger');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import logger from '../config/logger.js';
 
-async function authGuard(req, res, next) {
+export const authGuard = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Authorization header missing or malformed' });
@@ -29,6 +29,4 @@ async function authGuard(req, res, next) {
     logger.error('authGuard error: %s', err.message);
     return res.status(401).json({ message: 'Invalid or expired token' });
   }
-}
-
-module.exports = { authGuard };
+};

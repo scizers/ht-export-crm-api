@@ -1,36 +1,56 @@
-const Comment = require('../models/Comment');
-const logger = require('../config/logger');
+import Comment from '../models/Comment.js';
+import logger from '../config/logger.js';
+import { successObj, errorObj } from '../utils/response.js';
 
-exports.addComment = async (req, res, next) => {
+export const addComment = async ({ body, file, user }) => {
   try {
-    const { lead, text } = req.body;
+    const { lead, text } = body;
 
     if (!lead) {
-      return res.status(400).json({ message: 'lead is required' });
+      return {
+        ...errorObj,
+        status: 400,
+        message: 'lead is required',
+      };
     }
 
-    const screenshot = req.file ? `/uploads/screenshots/${req.file.filename}` : undefined;
+    const screenshot = file ? `/uploads/screenshots/${file.filename}` : undefined;
 
     const comment = await Comment.create({
       lead,
-      user: req.user?._id,
+      user: user?._id,
       text,
       screenshot,
     });
 
-    return res.status(201).json(comment);
+    return {
+      ...successObj,
+      status: 201,
+      comment,
+    };
   } catch (err) {
     logger.error('addComment error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to add comment',
+    };
   }
 };
 
-exports.getCommentsByLead = async (req, res, next) => {
+export const getCommentsByLead = async ({ params }) => {
   try {
-    const comments = await Comment.find({ lead: req.params.leadId }).sort({ createdAt: 1 });
-    return res.json(comments);
+    const comments = await Comment.find({ lead: params.leadId }).sort({ createdAt: 1 });
+    return {
+      ...successObj,
+      comments,
+    };
   } catch (err) {
     logger.error('getCommentsByLead error: %s', err.message);
-    return next(err);
+    return {
+      ...errorObj,
+      status: 500,
+      message: 'Unable to fetch comments',
+    };
   }
 };

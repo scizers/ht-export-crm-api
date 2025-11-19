@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-const logger = require('./logger');
+import mongoose from 'mongoose';
+import logger from './logger.js';
 
 const DEFAULT_RETRY_DELAY_MS = 5000;
 const MAX_RETRIES = 5;
 
-async function connectDB(retries = 0) {
+export const connectDB = async (retries = 0) => {
   const uri = process.env.MONGO_URI;
 
   if (!uri) {
@@ -34,6 +34,6 @@ async function connectDB(retries = 0) {
     await new Promise((resolve) => setTimeout(resolve, delay));
     return connectDB(retries + 1);
   }
-}
+};
 
-module.exports = connectDB;
+export default connectDB;
